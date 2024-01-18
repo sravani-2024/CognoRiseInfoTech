@@ -1,52 +1,72 @@
 import random
 
-def choose_word():
-    words = ["python", "hangman", "programming", "developer", "code", "challenge"]
-    return random.choice(words)
+class HangmanGame:
+    def __init__(self, word_list):
+        self.word_list = word_list
+        self.current_word = ""
+        self.guesses = []
+        self.max_attempts = 6
+        self.attempts_left = self.max_attempts
 
-def display_word(word, guessed_letters):
-    display = ""
-    for letter in word:
-        if letter in guessed_letters:
-            display += letter
+    def select_random_word(self):
+        self.current_word = random.choice(self.word_list).upper()
+
+    def initial_display(self):
+        return "_ " * len(self.current_word)
+
+    def user_input(self):
+        return input("Enter a letter: ").upper()
+
+    def check_letter(self, letter):
+        return letter in self.current_word
+
+    def update_state(self, letter):
+        self.guesses.append(letter)
+        return ' '.join([char if char in self.guesses else '_' for char in self.current_word])
+
+    def hangman_display(self):
+        return f"Attempts left: {self.attempts_left}"
+
+    def win_loss_check(self):
+        if set(self.current_word) == set(self.guesses):
+            return "You win!"
+        elif self.attempts_left == 0:
+            return f"You lose! The word was {self.current_word}."
         else:
-            display += "_"
-    return display
+            return None
 
-def hangman():
-    word_to_guess = choose_word()
-    guessed_letters = []
-    attempts = 6
+    def play_again(self):
+        return input("Do you want to play again? (yes/no): ").lower() == "yes"
 
-    print("Welcome to Hangman!")
-    print(display_word(word_to_guess, guessed_letters))
 
-    while attempts > 0:
-        guess = input("Guess a letter: ").lower()
+def main():
+    word_list = ["PYTHON", "JAVA", "C++", "HTML", "CSS"]
+    hangman_game = HangmanGame(word_list)
 
-        if len(guess) != 1 or not guess.isalpha():
-            print("Please enter a single letter.")
-            continue
+    while True:
+        hangman_game.select_random_word()
+        print("Welcome to Hangman!")
+        print(hangman_game.initial_display())
 
-        if guess in guessed_letters:
-            print("You already guessed that letter. Try again.")
-            continue
+        while True:
+            guess = hangman_game.user_input()
 
-        guessed_letters.append(guess)
+            if guess.isalpha() and len(guess) == 1:
+                if hangman_game.check_letter(guess):
+                    print(hangman_game.update_state(guess))
+                else:
+                    hangman_game.attempts_left -= 1
+                    print(hangman_game.hangman_display())
 
-        if guess not in word_to_guess:
-            attempts -= 1
-            print(f"Wrong guess! {attempts} attempts remaining.")
+                result = hangman_game.win_loss_check()
+                if result:
+                    print(result)
+                    break
+            else:
+                print("Please enter a valid single letter.")
 
-        display = display_word(word_to_guess, guessed_letters)
-        print(display)
-
-        if "_" not in display:
-            print("Congratulations! You guessed the word.")
+        if not hangman_game.play_again():
             break
 
-    if "_" in display:
-        print(f"Sorry, you ran out of attempts. The word was: {word_to_guess}")
-
 if __name__ == "__main__":
-    hangman()
+    main()
